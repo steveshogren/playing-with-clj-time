@@ -2,9 +2,23 @@
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
             [environ.core :refer [env]]
+            [clojure.data.codec.base64 :as base64]
             ))
 
-(def auth auth)
+(defn- byte-transform
+  "Used to encode and decode strings.  Returns nil when an exception
+  was raised."
+  [direction-fn string]
+  (try
+    (apply str (map char (direction-fn (.getBytes string))))
+    (catch Exception _)))
+
+(defn- encode-base64
+  "Will do a base64 encoding of a string and return a string."
+  [^String string]
+  (byte-transform base64/encode string))
+
+(def auth (encode-base64 (env :auth)))
 
 (defn query []
   (client/get "https://jira.smartstream-stp.com/rest/api/2/issue/CORE-7571/worklog"
@@ -57,6 +71,7 @@
            {:desc (:summary (:fields a))
             :id (:id a)})
          issues)))
+;;(get-stories)
 
 (defn foo
   "I don't do a whole lot."
