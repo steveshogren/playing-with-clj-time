@@ -3,7 +3,15 @@
             [clojure.data.json :as json]
             [environ.core :refer [env]]
             [clojure.data.codec.base64 :as base64]
+            [clj-time.core :as t]
+            [clj-time.local :as l]
             ))
+
+(defn today-8am []
+  (str (l/to-local-date-time (t/today-at 8 30 0))))
+
+(defn today-1am []
+  (str (l/to-local-date-time (t/today-at 12 30 0))))
 
 (defn- byte-transform
   "Used to encode and decode strings.  Returns nil when an exception
@@ -18,7 +26,10 @@
   [^String string]
   (byte-transform base64/encode string))
 
-(def auth (encode-base64 (env :auth)))
+(def auth (env :shogren))
+
+
+;; "startDate": "2015-04-11T15:22:00.000+10:00",
 
 (defn query []
   (client/get "https://jira.smartstream-stp.com/rest/api/2/issue/CORE-7571/worklog"
@@ -31,7 +42,6 @@
   (client/put "https://jira.smartstream-stp.com/rest/api/2/issue/201843/worklog/162169"
               {:basic-auth auth
                :body (json/write-str {:comment "I did some work here."
-                                      :author {:name "boe"}
                                       :timeSpentSeconds (* 60 60 1)})
                :content-type :json
                :insecure? true
