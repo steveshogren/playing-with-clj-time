@@ -29,14 +29,14 @@
 (def auth (env :shogren))
 
 (defn query []
-  (client/get "https://jira.smartstream-stp.com/rest/api/2/issue/CORE-7571/worklog"
+  (client/get (str (env :url) "rest/api/2/issue/CORE-7571/worklog")
               {:basic-auth auth
                :content-type :json
                :insecure? true
                :accept :json}))
 
 (defn create [user date]
-  (client/post "https://jira.smartstream-stp.com/rest/api/2/issue/CORE-7571/worklog"
+  (client/post (str (env :url) "rest/api/2/issue/CORE-7571/worklog")
                {:basic-auth user
                 :body (json/write-str {:comment ""
                                        :startDate date
@@ -51,14 +51,14 @@
 
 (defn get-stories []
   (let [sid (:id (first (:values (json/read-json
-                                  (:body (client/get "https://jira.smartstream-stp.com/rest/agile/1.0/board/146/sprint"
+                                  (:body (client/get (str (env :url) "rest/agile/1.0/board/146/sprint")
                                                      {:basic-auth auth
                                                       :content-type :json
                                                       :insecure? true
                                                       :query-params {"state" "active"}
                                                       :accept :json}
                                                      ))))))
-        issueGet (str "https://jira.smartstream-stp.com/rest/agile/1.0/board/146/sprint/" sid "/issue")
+        issueGet (str (env :url) "rest/agile/1.0/board/146/sprint/" sid "/issue")
         issues (:issues (json/read-json
                          (:body (client/get issueGet
                                             {:basic-auth auth
@@ -70,6 +70,7 @@
            {:desc (:summary (:fields a))
             :id (:id a)})
          issues)))
+
 ;;(get-stories)
 
 (defn foo
