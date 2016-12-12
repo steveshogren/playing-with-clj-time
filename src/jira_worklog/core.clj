@@ -28,9 +28,6 @@
 
 (def auth (env :shogren))
 
-
-;; "startDate": "2015-04-11T15:22:00.000+10:00",
-
 (defn query []
   (client/get "https://jira.smartstream-stp.com/rest/api/2/issue/CORE-7571/worklog"
               {:basic-auth auth
@@ -38,25 +35,17 @@
                :insecure? true
                :accept :json}))
 
-(defn update []
-  (client/put "https://jira.smartstream-stp.com/rest/api/2/issue/201843/worklog/162169"
-              {:basic-auth auth
-               :body (json/write-str {:comment "I did some work here."
-                                      :timeSpentSeconds (* 60 60 1)})
-               :content-type :json
-               :insecure? true
-               :accept :json}))
-
-(defn create []
+(defn create [user date]
   (client/post "https://jira.smartstream-stp.com/rest/api/2/issue/CORE-7571/worklog"
-               {:basic-auth auth
-                :body (json/write-str {:comment "I did some work here."
-                                       :author {:name "boe"}
-                                       :timeSpentSeconds (* 60 60 1)})
+               {:basic-auth user
+                :body (json/write-str {:comment ""
+                                       :startDate date
+                                       :timeSpentSeconds (+
+                                                          ;;(* (- (rand-int 3) 1) (* 60 (rand-int 15)))
+                                                          (* 60 60 4))})
                 :content-type :json
                 :insecure? true
                 :accept :json}))
-
 
 ;; (:self (first (:worklogs (json/read-json (:body (query))))))
 
