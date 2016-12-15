@@ -13,10 +13,10 @@
              (l/to-local-date-time d)))
 
 (defn today-8am []
-  (myformat (t/today-at 8 (rand-int 10) 0)))
+  (myformat (t/today-at 7 (+ 10 (rand-int 10)) 0)))
 
 (defn today-1pm []
-  (myformat  (t/today-at 13 0 0)))
+  (myformat  (t/today-at 11 (-  59 (rand-int 3)) 0)))
 
 (defn- byte-transform [direction-fn string]
   (try
@@ -94,20 +94,22 @@
 (comment
 
   (let [peeps [
-         :shogren
-         :boe
-         :welser
-         :sturges
-         :hamilton
-         :albertus
-         :mai
-         ;; :creque
-         ;; :haley
-         ;; :moran
-         ;; :miladinov
-         ]]
-    (log-time today-1pm)
-    (log-time today-8am))
+               :shogren
+               :boe
+               :welser
+               :sturges
+               :hamilton
+               :albertus
+               :mai
+               ;; :creque
+               ;; :haley
+               ;; :moran
+               ;; :miladinov
+               ]]
+    
+    (log-time peeps today-1pm)
+    (log-time peeps today-8am)
+    )
 
   (printf "test")
   )
