@@ -8,14 +8,15 @@
             [clj-time.local :as l]
             ))
 
-(defn format [d]
-  (f/unparse (f/formatter "YYYY-MM-dd'T'hh:mm:ss.sssZ") (l/to-local-date-time d)))
+(defn myformat [d]
+  (f/unparse (f/formatter-local "YYYY-MM-dd'T'hh:mm:ss.sssZ")
+             (l/to-local-date-time d)))
 
 (defn today-8am []
-  (format (t/today-at 8 30 0)))
+  (myformat (t/today-at 8 (rand-int 10) 0)))
 
-(defn today-1am []
-  (format  (t/today-at 12 30 0)))
+(defn today-1pm []
+  (myformat  (t/today-at 13 0 0)))
 
 (defn- byte-transform [direction-fn string]
   (try
@@ -27,20 +28,21 @@
 
 (def auth (env :shogren))
 
-(defn query []
-  (client/get (str (env :url) "rest/api/2/issue/CORE-7571/worklog")
-              {:basic-auth auth
+(defn query [user story]
+  (client/get (str (env :url) "rest/api/2/issue/" story "/worklog")
+              {:basic-auth user
                :content-type :json
                :insecure? true
                :accept :json}))
 
-(defn create [user date]
-  (client/post (str (env :url) "rest/api/2/issue/CORE-7571/worklog")
+(defn create [user date story]
+  (client/post (str (env :url) "rest/api/2/issue/" story "/worklog")
                {:basic-auth user
                 :body (json/write-str {:comment ""
                                        :started date
                                        :timeSpentSeconds (+
-                                                          ;;(* (- (rand-int 3) 1) (* 60 (rand-int 15)))
+                                                          (* (- (rand-int 3) 1)
+                                                             (* 60 (rand-int 15)))
                                                           (* 60 60 4))})
                 :query-params {
                                :adjustEstimate "leave"
@@ -48,13 +50,6 @@
                 :content-type :json
                 :insecure? true
                 :accept :json}))
-
-(create auth (today-8am))
-
-(today-8am)
-
-
-;; (:self (first (:worklogs (json/read-json (:body (query))))))
 
 (defn get-stories []
   (let [sid (:id (first (:values (json/read-json
@@ -75,10 +70,47 @@
                                             ))))]
     (map (fn [a]
            {:desc (:summary (:fields a))
+            :status (:key (:statusCategory  (:status (:fields a))))
             :id (:id a)})
          issues)))
 
-;;(get-stories)
+(def other-peeps [:obrien])
+
+;;(def v5-peeps [:shogren :boe :welser :sturges :hamilton :albertus :mai ;; :creque ;; :haley ;; :moran ;; :miladinov])
+
+(defn get-story-peep-pairs [peeps]
+  (let [all-from-sprint (get-stories)
+        stories (filter #(not (or (= "new" (:status %))
+                                  (= "done" (:status %)))) all-from-sprint)]
+    (map (fn [peep]
+           [(:id (rand-nth stories)) peep]) peeps)))
+
+(defn log-time [peeps time-f]
+  (reduce (fn [r [id peep]]
+            (conj r [peep (:status (create (env peep) (time-f) id))]))
+          []
+          (get-story-peep-pairs peeps)))
+
+(comment
+
+  (let [peeps [
+         :shogren
+         :boe
+         :welser
+         :sturges
+         :hamilton
+         :albertus
+         :mai
+         ;; :creque
+         ;; :haley
+         ;; :moran
+         ;; :miladinov
+         ]]
+    (log-time today-1pm)
+    (log-time today-8am))
+
+  (printf "test")
+  )
 
 (defn foo
   "I don't do a whole lot."
