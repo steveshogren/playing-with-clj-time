@@ -4,26 +4,25 @@
             [environ.core :refer [env]]
             [clojure.data.codec.base64 :as base64]
             [clj-time.core :as t]
+            [clj-time.format :as f]
             [clj-time.local :as l]
             ))
 
+(defn format [d]
+  (f/unparse (f/formatter "YYYY-MM-dd'T'hh:mm:ss.sssZ") (l/to-local-date-time d)))
+
 (defn today-8am []
-  (str (l/to-local-date-time (t/today-at 8 30 0))))
+  (format (t/today-at 8 30 0)))
 
 (defn today-1am []
-  (str (l/to-local-date-time (t/today-at 12 30 0))))
+  (format  (t/today-at 12 30 0)))
 
-(defn- byte-transform
-  "Used to encode and decode strings.  Returns nil when an exception
-  was raised."
-  [direction-fn string]
+(defn- byte-transform [direction-fn string]
   (try
     (apply str (map char (direction-fn (.getBytes string))))
     (catch Exception _)))
 
-(defn- encode-base64
-  "Will do a base64 encoding of a string and return a string."
-  [^String string]
+(defn- encode-base64 [^String string]
   (byte-transform base64/encode string))
 
 (def auth (env :shogren))
@@ -39,13 +38,21 @@
   (client/post (str (env :url) "rest/api/2/issue/CORE-7571/worklog")
                {:basic-auth user
                 :body (json/write-str {:comment ""
-                                       :startDate date
+                                       :started date
                                        :timeSpentSeconds (+
                                                           ;;(* (- (rand-int 3) 1) (* 60 (rand-int 15)))
                                                           (* 60 60 4))})
+                :query-params {
+                               :adjustEstimate "leave"
+                               }
                 :content-type :json
                 :insecure? true
                 :accept :json}))
+
+(create auth (today-8am))
+
+(today-8am)
+
 
 ;; (:self (first (:worklogs (json/read-json (:body (query))))))
 
