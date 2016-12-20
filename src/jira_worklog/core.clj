@@ -86,24 +86,25 @@
     (map (fn [peep]
            [(:id (rand-nth stories)) peep]) peeps)))
 
-(defn log-time [peeps board time-f]
+(defn log-time [[peeps board] time-f]
   (reduce (fn [r [story peep]]
             (conj r [peep (:status (create (env peep) (time-f) story))]))
           []
           (get-story-peep-pairs peeps board)))
 
-
+(defn log-day [peeps-n-board]
+  (log-time peeps-n-board today-8am)
+  (log-time peeps-n-board today-1pm))
 
 (comment
-  (let [
-        peeps (read-string (slurp "data.clj"))
-        v5 (:core peeps)
-        web (:web peeps)
-        reporting (:reporting peeps)]
-    ;;(log-time v5 146 today-1pm)
-    ;;(log-time v5 146 today-8am)
-    ;;(log-time reporting 147 today-1pm)
-    ;;(log-time reporting 147 today-8am)
+  (let [peeps (read-string (slurp "data.clj"))
+        v5 [(:core peeps) 146]
+        web [(:web peeps) 0]
+        reporting [(:reporting peeps) 147]]
+    (concat
+     ;;(log-day v5)
+     (log-day reporting)
+     )
     )
 
   (printf "test")
