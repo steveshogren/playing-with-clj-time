@@ -92,26 +92,16 @@
           []
           (get-story-peep-pairs peeps board)))
 
+
+
 (comment
-  (let [peeps [
-               :shogren
-               :boe
-               :welser
-               :sturges
-               ;;:hamilton
-               ;;:albertus
-               :mai
-               ;; :creque
-               ;; :haley
-               ;; :moran
-               ;; :miladinov
-               ]
-        reporting [
-                   :mirza
-                   :hussain
-                   ]]
-    ;;(log-time peeps 146 today-1pm)
-    ;;(log-time peeps 146 today-8am)
+  (let [
+        peeps (read-string (slurp "data.clj"))
+        v5 (:core peeps)
+        web (:web peeps)
+        reporting (:reporting peeps)]
+    ;;(log-time v5 146 today-1pm)
+    ;;(log-time v5 146 today-8am)
     ;;(log-time reporting 147 today-1pm)
     ;;(log-time reporting 147 today-8am)
     )
