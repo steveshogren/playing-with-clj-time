@@ -13,10 +13,10 @@
              (l/to-local-date-time d)))
 
 (defn today-8am []
-  (myformat (t/today-at 7 (+ 10 (rand-int 10)) 0)))
+  (myformat (t/today-at 7 (+ 10 (rand-int 0)) 0)))
 
 (defn today-1pm []
-  (myformat  (t/today-at 11 (-  59 (rand-int 3)) 0)))
+  (myformat  (t/today-at 11 (-  59 (rand-int 0)) 0)))
 
 (defn- byte-transform [direction-fn string]
   (try
@@ -51,64 +51,69 @@
                 :insecure? true
                 :accept :json}))
 
-(defn get-stories []
+(defn get-stories [board]
   (let [sid (:id (first (:values (json/read-json
-                                  (:body (client/get (str (env :url) "rest/agile/1.0/board/146/sprint")
+                                  (:body (client/get (str (env :url) "rest/agile/1.0/board/" board "/sprint")
                                                      {:basic-auth auth
                                                       :content-type :json
                                                       :insecure? true
                                                       :query-params {"state" "active"}
                                                       :accept :json}
                                                      ))))))
-        issueGet (str (env :url) "rest/agile/1.0/board/146/sprint/" sid "/issue")
+        issueGet (str (env :url) "rest/agile/1.0/board/" board "/sprint/" sid "/issue")
         issues (:issues (json/read-json
                          (:body (client/get issueGet
                                             {:basic-auth auth
                                              :content-type :json
                                              :insecure? true
                                              :accept :json}
-                                            ))))]
-    (map (fn [a]
-           {:desc (:summary (:fields a))
-            :status (:key (:statusCategory  (:status (:fields a))))
-            :id (:id a)})
-         issues)))
+                                            ))))
+        all-from-sprint (map (fn [a]
+                               {:desc (:summary (:fields a))
+                                :status (:key (:statusCategory  (:status (:fields a))))
+                                :id (:id a)})
+                             issues)]
+    (filter #(not (or (= "new" (:status %))
+                      (= "done" (:status %)))) all-from-sprint)
+    ))
 
 (def other-peeps [:obrien])
 
 ;;(def v5-peeps [:shogren :boe :welser :sturges :hamilton :albertus :mai ;; :creque ;; :haley ;; :moran ;; :miladinov])
 
-(defn get-story-peep-pairs [peeps]
-  (let [all-from-sprint (get-stories)
-        stories (filter #(not (or (= "new" (:status %))
-                                  (= "done" (:status %)))) all-from-sprint)]
+(defn get-story-peep-pairs [peeps board]
+  (let [stories (get-stories board)]
     (map (fn [peep]
            [(:id (rand-nth stories)) peep]) peeps)))
 
-(defn log-time [peeps time-f]
-  (reduce (fn [r [id peep]]
-            (conj r [peep (:status (create (env peep) (time-f) id))]))
+(defn log-time [peeps board time-f]
+  (reduce (fn [r [story peep]]
+            (conj r [peep (:status (create (env peep) (time-f) story))]))
           []
-          (get-story-peep-pairs peeps)))
+          (get-story-peep-pairs peeps board)))
 
 (comment
-
   (let [peeps [
                :shogren
                :boe
                :welser
                :sturges
-               :hamilton
-               :albertus
+               ;;:hamilton
+               ;;:albertus
                :mai
                ;; :creque
                ;; :haley
                ;; :moran
                ;; :miladinov
-               ]]
-    
-    (log-time peeps today-1pm)
-    (log-time peeps today-8am)
+               ]
+        reporting [
+                   :mirza
+                   :hussain
+                   ]]
+    ;;(log-time peeps 146 today-1pm)
+    ;;(log-time peeps 146 today-8am)
+    ;;(log-time reporting 147 today-1pm)
+    ;;(log-time reporting 147 today-8am)
     )
 
   (printf "test")
