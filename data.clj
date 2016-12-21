@@ -1,12 +1,12 @@
 {:web [
-       :obrien
        ]
  :core [
+        :obrien
         :shogren
         :boe
         :welser
         :sturges
-        ;;:hamilton
+        :hamilton
         ;;:albertus
         :mai
         ;; :creque
@@ -15,6 +15,6 @@
         ;; :miladinov
         ]
  :reporting [
-             :mirza
+             :mizra
              :hussain
              ]}

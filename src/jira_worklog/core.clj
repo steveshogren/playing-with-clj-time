@@ -102,7 +102,7 @@
         web [(:web peeps) 0]
         reporting [(:reporting peeps) 147]]
     (concat
-     ;;(log-day v5)
+     (log-day v5)
      (log-day reporting)
      )
     )
