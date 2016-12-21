@@ -115,6 +115,6 @@
         v5 [(:core peeps) 146]
         web [(:web peeps) 0]
         reporting [(:reporting peeps) 147]]
-    (concat
-     (log-day v5)
-     (log-day reporting))))
+    (println "ran: " 
+             (concat (log-day v5) (log-day reporting)))
+    ))
