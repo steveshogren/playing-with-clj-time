@@ -110,7 +110,11 @@
   (printf "test")
   )
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(defn foo [& args]
+  (let [peeps (read-string (slurp "data.clj"))
+        v5 [(:core peeps) 146]
+        web [(:web peeps) 0]
+        reporting [(:reporting peeps) 147]]
+    (concat
+     (log-day v5)
+     (log-day reporting))))
