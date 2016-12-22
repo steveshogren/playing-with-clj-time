@@ -1,18 +1,20 @@
 {:web [
        ]
+ :holiday [
+           ;; :creque
+           :haley
+           ;; :moran
+           ]
  :core [
         :obrien
+        :miladinov
         :shogren
         :boe
         :welser
         :sturges
         :hamilton
-        ;;:albertus
+        :albertus
         :mai
-        ;; :creque
-        ;; :haley
-        ;; :moran
-        ;; :miladinov
         ]
  :reporting [
              :mizra

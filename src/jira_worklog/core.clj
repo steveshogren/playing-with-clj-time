@@ -35,21 +35,24 @@
                :insecure? true
                :accept :json}))
 
-(defn create [user date story]
-  (client/post (str (env :url) "rest/api/2/issue/" story "/worklog")
-               {:basic-auth user
-                :body (json/write-str {:comment ""
-                                       :started date
-                                       :timeSpentSeconds (+
-                                                          (comment (* (- (rand-int 3) 1)
-                                                                      (* 60 (rand-int 15))))
-                                                          (* 60 60 4))})
-                :query-params {
-                               :adjustEstimate "leave"
-                               }
-                :content-type :json
-                :insecure? true
-                :accept :json}))
+(def four-hours (* 60 60 4))
+(def eight-hours (* 60 60 8))
+
+(defn create
+  ([user date story] (create user date story four-hours))
+  ([user date story time]
+   (:status (client/post (str (env :url) "rest/api/2/issue/" story "/worklog")
+                         {:basic-auth user
+                          :body (json/write-str {:comment ""
+                                                 :started date
+                                                 :timeSpentSeconds time})
+                          :query-params {
+                                         :adjustEstimate "leave"
+                                         }
+                          :content-type :json
+                          :insecure? true
+                          :accept :json}))
+   ))
 
 (defn get-stories [board]
   (let [sid (:id (first (:values (json/read-json
@@ -85,7 +88,7 @@
 
 (defn log-time [[peeps board] time-f]
   (reduce (fn [r [story peep]]
-            (conj r [peep (:status (create (env peep) (time-f) story))]))
+            (conj r [peep (create (env peep) (time-f) story)]))
           []
           (get-story-peep-pairs peeps board)))
 
@@ -93,25 +96,20 @@
   (log-time peeps-n-board today-8am)
   (log-time peeps-n-board today-1pm))
 
-(comment
-  (let [peeps (read-string (slurp "data.clj"))
-        v5 [(:core peeps) 146]
-        web [(:web peeps) 0]
-        reporting [(:reporting peeps) 147]]
-    (concat
-     (log-day v5)
-     (log-day reporting)
-     )
-    )
-
-  (printf "test")
-  )
+(defn log-holiday [peeps story]
+  (reduce (fn [r peep]
+            (conj r [peep (create (env peep) (today-8am) story eight-hours)]))
+          []
+          peeps))
 
 (defn foo [& args]
   (let [peeps (read-string (slurp "data.clj"))
         v5 [(:core peeps) 146]
+        holiday (:holiday peeps)
         web [(:web peeps) 0]
         reporting [(:reporting peeps) 147]]
-    (println "ran: " 
-             (concat (log-day v5) (log-day reporting)))
+    (println "ran: "
+             (concat (log-holiday holiday "CORE-7951")
+                     (log-day v5)
+                     (log-day reporting)))
     ))
