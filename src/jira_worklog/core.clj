@@ -13,7 +13,7 @@
              (l/to-local-date-time d)))
 
 (defn today-8am []
-  (myformat (t/today-at 7 (+ 10 (rand-int 0)) 0)))
+  (myformat (t/today-at 7 0 0)))
 
 (defn today-1pm []
   (myformat  (t/today-at 11 (-  59 (rand-int 0)) 0)))
@@ -41,8 +41,8 @@
                 :body (json/write-str {:comment ""
                                        :started date
                                        :timeSpentSeconds (+
-                                                          (* (- (rand-int 3) 1)
-                                                             (* 60 (rand-int 15)))
+                                                          (comment (* (- (rand-int 3) 1)
+                                                                      (* 60 (rand-int 15))))
                                                           (* 60 60 4))})
                 :query-params {
                                :adjustEstimate "leave"
