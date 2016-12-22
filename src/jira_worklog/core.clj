@@ -70,16 +70,13 @@
                                             ))))
         all-from-sprint (map (fn [a]
                                {:desc (:summary (:fields a))
+                                :statusName (:name (:status (:fields a)))
                                 :status (:key (:statusCategory  (:status (:fields a))))
                                 :id (:id a)})
                              issues)]
     (filter #(not (or (= "new" (:status %))
-                      (= "done" (:status %)))) all-from-sprint)
-    ))
-
-(def other-peeps [:obrien])
-
-;;(def v5-peeps [:shogren :boe :welser :sturges :hamilton :albertus :mai ;; :creque ;; :haley ;; :moran ;; :miladinov])
+                      ;; (= "Awaiting Acceptance" (:statusName %))
+                      (= "done" (:status %)))) all-from-sprint)))
 
 (defn get-story-peep-pairs [peeps board]
   (let [stories (get-stories board)]
