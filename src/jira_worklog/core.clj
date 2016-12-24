@@ -6,7 +6,7 @@
             [clj-time.core :as t]
             [clj-time.format :as f]
             [clj-time.local :as l]
-            ))
+            [jira-worklog.post :as p]))
 
 (defn myformat [d]
   (f/unparse (f/formatter-local "YYYY-MM-dd'T'hh:mm:ss.sssZ")
@@ -26,15 +26,6 @@
 (defn- encode-base64 [^String string]
   (byte-transform base64/encode string))
 
-(def auth (env :shogren))
-
-(defn query [user story]
-  (client/get (str (env :url) "rest/api/2/issue/" story "/worklog")
-              {:basic-auth user
-               :content-type :json
-               :insecure? true
-               :accept :json}))
-
 (def four-hours (* 60 60 4))
 (def eight-hours (* 60 60 8))
 
@@ -42,42 +33,18 @@
   ([user date story] (create user date story four-hours))
   ([user date story time]
    (try
-     (:status (client/post (str (env :url) "rest/api/2/issue/" story "/worklog")
-                           {:basic-auth user
-                            :body (json/write-str {:comment ""
-                                                   :started date
-                                                   :timeSpentSeconds time})
-                            :query-params {
-                                           :adjustEstimate "leave"
-                                           }
-                            :content-type :json
-                            :insecure? true
-                            :accept :json}))
+     (:status (p/create-log (env :url) story user date time))
      (catch Exception e
        (do (println "failed: " user)
            500)))))
 
 (defn get-stories [board]
-  (let [sid (:id (first (:values (json/read-json
-                                  (:body (client/get (str (env :url) "rest/agile/1.0/board/" board "/sprint")
-                                                     {:basic-auth auth
-                                                      :content-type :json
-                                                      :insecure? true
-                                                      :query-params {"state" "active"}
-                                                      :accept :json}
-                                                     ))))))
-        issueGet (str (env :url) "rest/agile/1.0/board/" board "/sprint/" sid "/issue")
-        issues (:issues (json/read-json
-                         (:body (client/get issueGet
-                                            {:basic-auth auth
-                                             :content-type :json
-                                             :insecure? true
-                                             :accept :json}
-                                            ))))
+  (let [sid (:id (first (p/get-active-sprints board)))
+        issues (:issues (p/get-issues-in-sprint board sid))
         all-from-sprint (map (fn [a]
                                {:desc (:summary (:fields a))
                                 :statusName (:name (:status (:fields a)))
-                                :status (:key (:statusCategory  (:status (:fields a))))
+                                :status (:key (:statusCategory (:status (:fields a))))
                                 :id (:id a)})
                              issues)]
     (filter #(not (or (= "new" (:status %))
