@@ -1,13 +1,7 @@
 (ns jira-worklog.post
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
-            [environ.core :refer [env]]
-            [clojure.data.codec.base64 :as base64]
-            [clj-time.core :as t]
-            [clj-time.format :as f]
-            [clj-time.local :as l]
-            )
-  )
+            [environ.core :refer [env]]))
 
 (def auth (env :shogren))
 
@@ -38,9 +32,9 @@
                                 :query-params {"state" "active"}
                                 :accept :json})))))
 
-(defn get-issues-in-sprint [board sid]
+(defn get-issues-in-sprint [board sprint-id]
   (json/read-json
-   (:body (client/get (str (env :url) "rest/agile/1.0/board/" board "/sprint/" sid "/issue")
+   (:body (client/get (str (env :url) "rest/agile/1.0/board/" board "/sprint/" sprint-id "/issue")
                       {:basic-auth auth
                        :content-type :json
                        :insecure? true

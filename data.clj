@@ -1,5 +1,6 @@
 {:web [
        ]
+ ;;:date-override  "2016-12-02"
  :holiday [
            ;; :creque
            :haley
