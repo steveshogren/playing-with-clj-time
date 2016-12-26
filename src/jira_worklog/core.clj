@@ -7,6 +7,9 @@
             [clj-time.local :as l]
             [jira-worklog.post :as p]))
 
+(defn get-data []
+  (read-string (slurp "data.clj")))
+
 (defn myformat [d]
   (f/unparse (f/formatter-local "YYYY-MM-dd'T'hh:mm:ss.sssZ")
              (l/to-local-date-time d)))
@@ -78,8 +81,6 @@
           []
           peeps))
 
-(defn get-data []
-  (read-string (slurp "data.clj")))
 
 (defn foo [& args]
   (let [peeps (get-data)
