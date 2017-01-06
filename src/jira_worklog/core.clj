@@ -53,7 +53,7 @@
                                 :id (:id a)})
                              issues)]
     (filter #(not (or (= "new" (:status %))
-                      ;; (= "Awaiting Acceptance" (:statusName %))
+                      (contains? (:filterStatus (get-data)) (:statusName %))
                       (= "done" (:status %)))) all-from-sprint)))
 
 (defn get-story-peep-pairs [peeps board]
@@ -80,7 +80,6 @@
               (conj r result)))
           []
           peeps))
-
 
 (defn foo [& args]
   (let [peeps (get-data)

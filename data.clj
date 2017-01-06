@@ -1,6 +1,7 @@
 {:web [
        ]
  ;;:date-override  "2016-12-02"
+ :filterStatus #{"Awaiting Acceptance" }
  :holiday [
            ;; :creque
            :haley
