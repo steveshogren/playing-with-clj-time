@@ -18,7 +18,7 @@
         body (json/write-str {:comment ""
                               :started date
                               :timeSpentSeconds time})]
-    (clojurjie.pprint/pprint {:user user
+    (clojure.pprint/pprint {:user user
                               :url url
                               :body body})
     (if @dry?

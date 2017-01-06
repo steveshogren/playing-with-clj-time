@@ -82,6 +82,8 @@
           peeps))
 
 (defn foo [& args]
+  (if (= "--dry-run" (first args))
+    (swap! p/dry? (fn [x] true)))
   (let [peeps (get-data)
         v5 [(:core peeps) 146]
         holiday (:holiday peeps)
