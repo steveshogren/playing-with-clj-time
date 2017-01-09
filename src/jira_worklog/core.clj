@@ -56,6 +56,14 @@
                       (contains? (:filterStatus (get-data)) (:statusName %))
                       (= "done" (:status %)))) all-from-sprint)))
 
+(comment
+  (get-logs 146)
+  )
+(defn get-logs [board]
+  (let [stories (get-stories board)
+        logs (mapcat (comp p/query :id) stories)]
+    logs))
+
 (defn get-story-peep-pairs [peeps board]
   (let [stories (get-stories board)]
     (map (fn [peep]

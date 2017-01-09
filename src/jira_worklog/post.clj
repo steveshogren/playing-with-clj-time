@@ -6,9 +6,9 @@
 (def auth (env :shogren))
 (def dry? (atom false))
 
-(defn query [user story]
+(defn query [story]
   (client/get (str (env :url) "rest/api/2/issue/" story "/worklog")
-              {:basic-auth user
+             {:basic-auth auth
                :content-type :json
                :insecure? true
                :accept :json}))
