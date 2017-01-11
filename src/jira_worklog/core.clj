@@ -67,15 +67,23 @@
 (defn get-story-peep-pairs [peeps board]
   (let [stories (get-stories board)]
     (map (fn [peep]
-           [(:id (rand-nth stories)) peep]) peeps)))
+           (let [story (rand-nth stories)]
+             [(:id story) peep (:desc story)])) peeps)))
+
+(defn confirm-logs? [stories-and-peeps time-f]
+  (doseq [[story peep desc] stories-and-peeps]
+    (println peep " - " (time-f) " - " desc ))
+  (println "Submit logs? y/n")
+  (= "y" (read-line)))
 
 (defn log-time [[peeps board] time-f]
-  (reduce (fn [r [story peep]]
-            (let [result  [peep (create (env peep) (time-f) story)]]
-              (println "success: " result)
-              (conj r result)))
-          []
-          (get-story-peep-pairs peeps board)))
+  (let [stories-and-peeps (get-story-peep-pairs peeps board)]
+    (if (confirm-logs? stories-and-peeps time-f)
+      (reduce (fn [r [story peep desc]]
+                (let [result [peep (create (env peep) (time-f) story)]]
+                  (conj r result)))
+              []
+              stories-and-peeps))))
 
 (defn log-day [peeps-n-board]
   (log-time peeps-n-board today-8am)

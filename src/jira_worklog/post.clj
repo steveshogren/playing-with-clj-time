@@ -19,8 +19,8 @@
                               :started date
                               :timeSpentSeconds time})]
     (clojure.pprint/pprint {:user user
-                              :url url
-                              :body body})
+                            :url url
+                            :body body})
     (if @dry?
       {:status 9999}
       (client/post url
