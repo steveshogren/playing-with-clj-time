@@ -43,8 +43,23 @@
        (do (println "failed: " user)
            500)))))
 
+(comment
+  (choose-sprint [{:id 11 :name "test"} {:id 22 :name "other"}])
+  )
+(defn choose-sprint [sprints]
+  (if (= 1 (count sprints))
+    (-> sprints first :id)
+    (do
+      (println "Multiple sprints found:")
+      (doseq [sprint sprints]
+        (println sprint))
+      (println "Enter a zero-based index to select:")
+      (:id (nth sprints (Integer/parseInt (read-line)))))))
+
+
 (defn get-stories [board]
-  (let [sprint-id (-> (p/get-active-sprints board) first :id)
+  (let [sprints (p/get-active-sprints board)
+        sprint-id (choose-sprint sprints)
         issues (:issues (p/get-issues-in-sprint board sprint-id))
         all-from-sprint (map (fn [a]
                                {:desc (-> a :fields :summary)
