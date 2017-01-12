@@ -18,9 +18,7 @@
         body (json/write-str {:comment ""
                               :started date
                               :timeSpentSeconds time})]
-    (clojure.pprint/pprint {:user user
-                            :url url
-                            :body body})
+    ;;(clojure.pprint/pprint {:user user :url url :body body})
     (if @dry?
       {:status 9999}
       (client/post url

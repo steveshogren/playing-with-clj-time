@@ -93,7 +93,8 @@
 
 (defn log-time [[peeps board] time-f]
   (let [stories-and-peeps (get-story-peep-pairs peeps board)]
-    (if (confirm-logs? stories-and-peeps time-f)
+    (if (and (< 0 (count stories-and-peeps))
+             (confirm-logs? stories-and-peeps time-f))
       (reduce (fn [r [story peep desc]]
                 (let [result [peep (create (env peep) (time-f) story)]]
                   (conj r result)))
@@ -101,13 +102,12 @@
               stories-and-peeps))))
 
 (defn log-day [peeps-n-board]
-  (log-time peeps-n-board today-8am)
-  (log-time peeps-n-board today-1pm))
+  (concat (log-time peeps-n-board today-8am)
+          (log-time peeps-n-board today-1pm)))
 
 (defn log-holiday [peeps story]
   (reduce (fn [r peep]
             (let [result [peep (create (env peep) (today-8am) story eight-hours)]]
-              (println "success: " result)
               (conj r result)))
           []
           peeps))
@@ -120,6 +120,6 @@
         holiday (:holiday peeps)
         web [(:web peeps) 0]
         reporting [(:reporting peeps) 147]]
-    (concat (log-holiday holiday "CORE-7951")
-            (log-day v5)
-            (log-day reporting))))
+    (println (concat (log-holiday holiday "CORE-7951")
+                     (log-day v5)
+                     (log-day reporting)))))
