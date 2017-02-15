@@ -1,13 +1,13 @@
 {:web [
        ]
  ;;:date-override  "2016-12-02"
- :filterStatus #{"Awaiting Acceptance" }
+ ;; :filterStatus #{"Awaiting Acceptance" }
  :holiday [
-           ;; :creque
-           :haley
            ;; :moran
            ]
  :core [
+        :creque
+        :haley
         :obrien
         :miladinov
         :shogren
@@ -17,7 +17,13 @@
         :hamilton
         :albertus
         :mai
+        :lin
         ]
+ :support [
+        :funke
+        ]
+ :reporting-holiday [
+                     ]
  :reporting [
              :mizra
              :hussain

@@ -105,7 +105,7 @@
   (concat (log-time peeps-n-board today-8am)
           (log-time peeps-n-board today-1pm)))
 
-(defn log-holiday [peeps story]
+(defn log-single-day [peeps story]
   (reduce (fn [r peep]
             (let [result [peep (create (env peep) (today-8am) story eight-hours)]]
               (conj r result)))
@@ -117,9 +117,11 @@
     (swap! p/dry? (fn [x] true)))
   (let [peeps (get-data)
         v5 [(:core peeps) 146]
-        holiday (:holiday peeps)
+        holiday (log-single-day (:holiday peeps) "CORE-7951")
+        suport (log-single-day (:support peeps) "CORE-8069")
         web [(:web peeps) 0]
         reporting [(:reporting peeps) 147]]
-    (println (concat (log-holiday holiday "CORE-7951")
+    (println (concat holiday
+                     support
                      (log-day v5)
                      (log-day reporting)))))
