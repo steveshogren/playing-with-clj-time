@@ -2,7 +2,7 @@
        ]
  ;;:date-override  "2016-12-02"
  ;; :filterStatus #{"Awaiting Acceptance" }
- :holiday [
+ :core-holiday [
            ;; :moran
            ]
  :core [
@@ -22,8 +22,11 @@
  :support [
         :funke
         ]
+ :support-issue  "CORE-8069"
+ :core-holiday-issue "CORE-7951"
+ :reporting-holiday-issue "REP-2845"
  :reporting-holiday [
-                     ]
+                ]
  :reporting [
              :mizra
              :hussain
