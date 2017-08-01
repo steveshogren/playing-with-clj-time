@@ -131,6 +131,7 @@
                          (log-day reporting))
         all-good? (reduce (fn [ret [name status]] (and ret (= 201 status))) true statuses)]
     (if all-good?
-      (println "All Good!")
-      (println "Some failed!"))
+      (do (println "All Good!")
+          (spit "dates.txt" (str "\n" (today-8am)) :append true))
+      (println "!!!!!!!!!!!!!Some failed!!!!!!!!!!!!!!"))
     (println statuses)))
