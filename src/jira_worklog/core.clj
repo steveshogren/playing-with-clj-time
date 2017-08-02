@@ -101,7 +101,8 @@
               (let [result [peep (create (env peep) (time-f) story)]]
                 (conj r result)))
             []
-            stories-and-peeps-and-time-f)))
+            stories-and-peeps-and-time-f)
+    (println "Logging Aborted! No logs posted.")))
 
 (defn collect-split-day [peeps-n-board]
   (concat (get-story-peep-pairs peeps-n-board today-8am)
