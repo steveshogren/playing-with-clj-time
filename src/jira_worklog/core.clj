@@ -14,11 +14,13 @@
   (f/unparse (f/formatter-local "YYYY-MM-dd'T'hh:mm:ss.sssZ")
              (l/to-local-date-time d)))
 
+(defn today-8am-date []
+  (if-let [d (f/parse (:date-override (get-data)))]
+    (t/plus d (t/hours 7))
+    (t/today-at 7 0 0)))
+
 (defn today-8am []
-  (myformat
-   (if-let [d (f/parse (:date-override (get-data)))]
-     (t/plus d (t/hours 7))
-     (t/today-at 7 0 0))))
+  (myformat (today-8am-date)))
 
 (defn today-1pm []
   (myformat
@@ -79,56 +81,52 @@
         logs (mapcat (comp p/query :id) stories)]
     logs))
 
-(defn get-story-peep-pairs [peeps board]
+(defn get-story-peep-pairs [peeps board time-f]
   (let [stories (get-stories board)]
     (map (fn [peep]
            (let [story (rand-nth stories)]
-             [(:id story) peep (:desc story)])) peeps)))
+             [(:id story) peep (:desc story) time-f]))
+         peeps)))
 
-(defn confirm-logs? [stories-and-peeps time-f]
-  (doseq [[story peep desc] stories-and-peeps]
+(defn confirm-logs? [stories-and-peeps]
+  (doseq [[story peep desc time-f] stories-and-peeps]
     (println peep " - " (time-f) " - " desc ))
   (println "Submit logs? y/n")
   (= "y" (read-line)))
 
-(defn log-time [[peeps board] time-f]
-  (let [stories-and-peeps (get-story-peep-pairs peeps board)]
-    (if (and (< 0 (count stories-and-peeps))
-             (confirm-logs? stories-and-peeps time-f))
-      (reduce (fn [r [story peep desc]]
-                (let [result [peep (create (env peep) (time-f) story)]]
-                  (conj r result)))
-              []
-              stories-and-peeps))))
+(defn log-all-time [stories-and-peeps-and-time-f]
+  (if (and (< 0 (count stories-and-peeps-and-time-f))
+           (confirm-logs? stories-and-peeps-and-time-f))
+    (reduce (fn [r [story peep desc time-f]]
+              (let [result [peep (create (env peep) (time-f) story)]]
+                (conj r result)))
+            []
+            stories-and-peeps-and-time-f)))
 
-(defn log-day [peeps-n-board]
-  (concat (log-time peeps-n-board today-8am)
-          (log-time peeps-n-board today-1pm)))
+(defn collect-split-day [peeps-n-board]
+  (concat (get-story-peep-pairs peeps-n-board today-8am)
+          (get-story-peep-pairs peeps-n-board today-1pm)))
 
-(defn log-single-day [peeps story]
-  (reduce (fn [r peep]
-            (if (confirm-logs? [[story peep story]] today-8am)
-              (let [result [peep (create (env peep) (today-8am) story eight-hours)]]
-                (conj r result))
-              r))
-          []
-          peeps))
+(defn collect-single-day [peeps story]
+  (map (fn [r peep] [story peep story today-8am]) peeps))
 
 (defn foo [& args]
   (if (= "--dry-run" (first args))
     (swap! p/dry? (fn [x] true)))
   (let [peeps (get-data)
-        v5 [(:core peeps) 146]
-        core-holiday (log-single-day (:core-holiday peeps) (:core-holiday-issue peeps))
-        reporting-holiday (log-single-day (:reporting-holiday peeps) (:reporting-holiday-issue peeps))
-        support (log-single-day (:support peeps) (:support-issue peeps))
+        core-holiday-col (collect-single-day (:core-holiday peeps) (:core-holiday-issue peeps))
+        reporting-holiday-col (collect-single-day (:reporting-holiday peeps) (:reporting-holiday-issue peeps))
+        support-col (collect-single-day (:support peeps) (:support-issue peeps))
+        v5-peeps-and-board [(:core peeps) 146]
+        v5-col (collect-split-day v5-peeps-and-board)
+        reporting-peeps-and-board [(:reporting peeps) 147]
+        reporting-col (collect-split-day reporting-peeps-and-board)
         ;;web [(:web peeps) 0]
-        reporting [(:reporting peeps) 147]
-        statuses (concat core-holiday
-                         reporting-holiday
-                         support
-                         (log-day v5)
-                         (log-day reporting))
+        statuses (log-all-time (concat core-holiday-col
+                                       reporting-holiday-col
+                                       support-col
+                                       v5-col
+                                       reporting-col))
         all-good? (reduce (fn [ret [name status]] (and ret (= 201 status))) true statuses)]
     (if all-good?
       (do (println "All Good!")
