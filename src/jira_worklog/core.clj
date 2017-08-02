@@ -109,7 +109,7 @@
           (get-story-peep-pairs peeps-n-board today-1pm)))
 
 (defn collect-single-day [peeps story]
-  (map (fn [r peep] [story peep story today-8am]) peeps))
+  (map (fn [peep] [story peep story today-8am]) peeps))
 
 (defn foo [& args]
   (if (= "--dry-run" (first args))
