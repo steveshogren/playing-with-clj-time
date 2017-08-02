@@ -81,7 +81,7 @@
         logs (mapcat (comp p/query :id) stories)]
     logs))
 
-(defn get-story-peep-pairs [peeps board time-f]
+(defn get-story-peep-pairs [[peeps board] time-f]
   (let [stories (get-stories board)]
     (map (fn [peep]
            (let [story (rand-nth stories)]
