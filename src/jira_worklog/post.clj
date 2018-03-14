@@ -52,14 +52,24 @@
                        :insecure? true
                        :accept :json}))))
 
-(def issues  (let [sprintId (-> (get-active-sprints 146) first :id)
+(defn get-worklog [issue-id]
+  (json/read-json
+   (:body (client/get (str (env :url) "rest/api/2/issue/" issue-id "/worklog")
+                      {:basic-auth auth
+                       :content-type :json
+                       :insecure? true
+                       :accept :json}))))
+
+(def logs  (let [sprintId (-> (get-active-sprints 146) first :id)
                    issues (get-issues-in-sprint 146 sprintId)
+                   ids (map :id (:issues issues))
                    ]
-               issues
+               (mapcat :worklogs (map get-worklog ids))
                ))
-(def logs (sort (distinct (map (fn [log]
+
+(def logDates (sort (distinct (map (fn [log]
                                  (f/unparse (f/formatter-local "YYYY-MM-dd")
                                             (f/parse (:started log)))
                                  )
-                               (:worklogs (:worklog (:fields (first (:issues issues)))))))))
+                               logs))))
 
