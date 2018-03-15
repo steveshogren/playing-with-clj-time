@@ -111,7 +111,11 @@
 (defn collect-single-day [peeps story]
   (map (fn [peep] [story peep story today-8am]) peeps))
 
-(defn foo [& args]
+(defn printhistory []
+  (println "history incoming!")
+  (println (p/log-dates)))
+
+(defn create-logs [args]
   (if (= "--dry-run" (first args))
     (swap! p/dry? (fn [x] true)))
   (let [peeps (get-data)
@@ -133,4 +137,10 @@
       (do (println "All Good!")
           (spit "dates.txt" (str "\n" (today-8am)) :append true))
       (println "!!!!!!!!!!!!!Some failed!!!!!!!!!!!!!!"))
-    (println statuses)))
+    (println statuses))
+  )
+
+(defn foo [& args]
+  (if (= "-h" (first args))
+    (printhistory)
+    (create-logs args)))
