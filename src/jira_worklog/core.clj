@@ -1,10 +1,12 @@
 (ns jira-worklog.core
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
+            [clojure.set :as set]
             [environ.core :refer [env]]
             [clj-time.core :as t]
             [clj-time.format :as f]
             [clj-time.local :as l]
+            [clj-time.predicates :as pred]
             [jira-worklog.post :as p]))
 
 (defn get-data []
@@ -111,9 +113,20 @@
 (defn collect-single-day [peeps story]
   (map (fn [peep] [story peep story today-8am]) peeps))
 
+(defn last-two-weeks []
+  (let [today (t/today)]
+    (->> (range 30)
+        (map #(t/minus today (t/days %)) )
+        (filter (comp not pred/weekend?))
+        (map str)
+        )))
+
+
 (defn printhistory []
-  (println "history incoming!")
-  (println (p/log-dates)))
+  (println "missing days incoming!")
+  (let [logged (set (p/log-dates))
+        weekdays (set (last-two-weeks))]
+    (println (set/difference weekdays logged))))
 
 (defn create-logs [args]
   (if (= "--dry-run" (first args))
