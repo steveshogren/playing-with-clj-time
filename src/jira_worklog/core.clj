@@ -118,15 +118,15 @@
     (->> (range 30)
         (map #(t/minus today (t/days %)) )
         (filter (comp not pred/weekend?))
-        (map str)
+        ;;(map str)
         )))
-
 
 (defn printhistory []
   (println "missing days incoming!")
   (let [logged (set (p/log-dates))
-        weekdays (set (last-two-weeks))]
-    (println (set/difference weekdays logged))))
+        weekdays (set (last-two-weeks))
+        missing (set/difference weekdays logged)]
+    (map str (sort missing))))
 
 (defn create-logs [args]
   (if (= "--dry-run" (first args))

@@ -67,7 +67,7 @@
         ids (map :id (:issues issues))
         logs (mapcat :worklogs (map get-worklog ids))]
     (sort (distinct (map (fn [log]
-                           (f/unparse (f/formatter-local "YYYY-MM-dd")
-                                      (f/parse (:started log))))
+                           ;; (f/unparse (f/formatter-local "YYYY-MM-dd"))
+                           (f/parse (:started log)))
                          logs)))))
 
