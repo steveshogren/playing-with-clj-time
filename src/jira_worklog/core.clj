@@ -16,30 +16,23 @@
   (f/unparse (f/formatter-local "YYYY-MM-dd'T'hh:mm:ss.sssZ")
              (l/to-local-date-time d)))
 
-(defn today-8am-date []
-  (if-let [d (f/parse (:date-override (get-data)))]
+(defn today-8am-date [date-override]
+  (if-let [d (f/parse date-override)]
     (t/plus d (t/hours 7))
     (t/today-at 7 0 0)))
 
-(defn today-8am []
-  (myformat (today-8am-date)))
-
-(defn today-1pm []
-  (myformat
-   (if-let [d (f/parse (:date-override (get-data)))]
-     (t/plus d (t/hours 11) (t/minutes 59))
-     (t/today-at 11 59 0))))
+(defn today-8am [date-override]
+   (myformat (today-8am-date date-override)))
 
 (defn- byte-transform [direction-fn string]
   (try
     (apply str (map char (direction-fn (.getBytes string))))
     (catch Exception _)))
 
-(def four-hours (* 60 60 4))
 (def eight-hours (* 60 60 8))
 
 (defn create
-  ([user date story] (create user date story four-hours))
+  ([user date story] (create user date story eight-hours)) ; Change this to 8 hours
   ([user date story time]
    (try
      (:status (p/create-log story user date time))
@@ -83,39 +76,39 @@
         logs (mapcat (comp p/query :id) stories)]
     logs))
 
-(defn get-story-peep-pairs [[peeps board] time-f]
+(defn get-story-peep-pairs [[peeps board] time]
   (let [stories (get-stories board)]
     (map (fn [peep]
            (let [story (rand-nth stories)]
-             [(:id story) peep (:desc story) time-f]))
+             [(:id story) peep (:desc story) time]))
          peeps)))
 
 (defn confirm-logs? [stories-and-peeps]
-  (doseq [[story peep desc time-f] stories-and-peeps]
-    (println peep " - " (time-f) " - " desc ))
+  (doseq [[story peep desc time] stories-and-peeps]
+    (println peep " - " time " - " desc ))
   (println "Submit logs? y/n")
   (= "y" (read-line)))
 
 (defn log-all-time [stories-and-peeps-and-time-f]
   (if (and (< 0 (count stories-and-peeps-and-time-f))
-           (confirm-logs? stories-and-peeps-and-time-f))
-    (reduce (fn [r [story peep desc time-f]]
-              (let [result [peep (create (env peep) (time-f) story)]]
+           (confirm-logs? stories-and-peeps-and-time-f)
+           )
+    (reduce (fn [r [story peep desc time]]
+              (let [result [peep (create (env peep) time story)]]
                 (conj r result)))
             []
             stories-and-peeps-and-time-f)
     (println "Logging Aborted! No logs posted.")))
 
-(defn collect-split-day [peeps-n-board]
-  (concat (get-story-peep-pairs peeps-n-board today-8am)
-          (get-story-peep-pairs peeps-n-board today-1pm)))
+(defn collect-rand-story-from-board [peeps-n-board date-override]
+  (get-story-peep-pairs peeps-n-board (today-8am date-override)))
 
-(defn collect-single-day [peeps story]
-  (map (fn [peep] [story peep story today-8am]) peeps))
+(defn collect-single-day [peeps story date-override]
+  (map (fn [peep] [story peep story (today-8am date-override)]) peeps))
 
 (defn last-two-weeks []
   (let [today (t/today)]
-    (->> (range 30)
+    (->> (range 20)
         (map #(t/minus today (t/days %)) )
         (filter (comp not pred/weekend?))
         (map str)
@@ -128,30 +121,33 @@
         missing (set/difference weekdays logged)]
     (println (map str (reverse (sort missing))))))
 
-(defn create-logs [args]
-  (if (= "--dry-run" (first args))
-    (swap! p/dry? (fn [x] true)))
-  (let [peeps (get-data)
-        core-holiday-col (collect-single-day (:core-holiday peeps) (:core-holiday-issue peeps))
-        reporting-holiday-col (collect-single-day (:reporting-holiday peeps) (:reporting-holiday-issue peeps))
-        support-col (collect-single-day (:support peeps) (:support-issue peeps))
+(defn collect-all-users [peeps date]
+  (let [core-holiday-col (collect-single-day (:core-holiday peeps) (:core-holiday-issue peeps) date)
+        reporting-holiday-col (collect-single-day (:reporting-holiday peeps) (:reporting-holiday-issue peeps) date)
+        support-col (collect-single-day (:support peeps) (:support-issue peeps) date)
         v5-peeps-and-board [(:core peeps) 146]
-        v5-col (collect-split-day v5-peeps-and-board)
+        v5-col (collect-rand-story-from-board v5-peeps-and-board date)
         reporting-peeps-and-board [(:reporting peeps) 147]
-        reporting-col (collect-split-day reporting-peeps-and-board)
-        ;;web [(:web peeps) 0]
-        statuses (log-all-time (concat core-holiday-col
-                                       reporting-holiday-col
-                                       support-col
-                                       v5-col
-                                       reporting-col))
+        reporting-col (collect-rand-story-from-board reporting-peeps-and-board date)
+        all-users-to-log (concat core-holiday-col
+                                 reporting-holiday-col
+                                 support-col
+                                 v5-col
+                                 reporting-col)]
+    all-users-to-log))
+
+(defn create-logs [args]
+  (let [peeps (get-data)
+        dates (if (:date-override peeps) (:date-override peeps)  [(t/today)])
+        all-users-to-log (mapcat (fn [date] (collect-all-users peeps date)) dates)
+        statuses (log-all-time all-users-to-log)
         all-good? (reduce (fn [ret [name status]] (and ret (= 201 status))) true statuses)]
     (if all-good?
-      (do (println "All Good!")
-          (spit "dates.txt" (str "\n" (today-8am)) :append true))
+      (println "All Good!")
       (println "!!!!!!!!!!!!!Some failed!!!!!!!!!!!!!!"))
-    (println statuses))
+    (println statuses)
   )
+)
 
 (defn foo [& args]
   (if (= "-h" (first args))
