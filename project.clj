@@ -7,6 +7,7 @@
   :main jira-worklog.core/foo
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [clj-http "2.3.0"]
+                 [com.ashafa/clutch "0.4.0"]
                  [org.clojure/data.codec "0.1.0"]
                  [clj-time "0.12.2"]
                  [org.clojure/data.json "0.2.6"]

@@ -2,15 +2,15 @@
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
             [clojure.set :as set]
-            [environ.core :refer [env]]
             [clj-time.core :as t]
             [clj-time.format :as f]
             [clj-time.local :as l]
             [clj-time.predicates :as pred]
-            [jira-worklog.post :as p]))
+            [jira-worklog.post :as p]
+            [jira-worklog.creds :as creds]
+            ))
 
-(defn get-data []
-  (read-string (slurp "data.clj")))
+(def run-data (read-string (slurp "data.clj")))
 
 (defn myformat [d]
   (f/unparse (f/formatter-local "YYYY-MM-dd'T'hh:mm:ss.sssZ")
@@ -24,15 +24,10 @@
 (defn today-8am [date-override]
    (myformat (today-8am-date date-override)))
 
-(defn- byte-transform [direction-fn string]
-  (try
-    (apply str (map char (direction-fn (.getBytes string))))
-    (catch Exception _)))
-
 (def eight-hours (* 60 60 8))
 
 (defn create
-  ([user date story] (create user date story eight-hours)) ; Change this to 8 hours
+  ([user date story] (create user date story eight-hours))
   ([user date story time]
    (try
      (:status (p/create-log story user date time))
@@ -40,9 +35,8 @@
        (do (println "failed: " user)
            500)))))
 
-(comment
-  (choose-sprint [{:id 11 :name "test"} {:id 22 :name "other"}])
-  )
+(comment (choose-sprint [{:id 11 :name "test"} {:id 22 :name "other"}]))
+
 (defn choose-sprint [sprints]
   (if (= 1 (count sprints))
     (-> sprints first :id)
@@ -65,7 +59,7 @@
                                 :id (:id a)})
                              issues)]
     (filter #(not (or (= "new" (:status %))
-                      (contains? (:filterStatus (get-data)) (:statusName %))
+                      (contains? (:filterStatus run-data) (:statusName %))
                       (= "done" (:status %)))) all-from-sprint)))
 
 (comment
@@ -94,7 +88,7 @@
            (confirm-logs? stories-and-peeps-and-time-f)
            )
     (reduce (fn [r [story peep desc time]]
-              (let [result [peep (create (env peep) time story)]]
+              (let [result [peep (create (creds/get-creds peep) time story)]]
                 (conj r result)))
             []
             stories-and-peeps-and-time-f)
@@ -137,7 +131,7 @@
     all-users-to-log))
 
 (defn create-logs [args]
-  (let [peeps (get-data)
+  (let [peeps run-data
         dates (if (:date-override peeps) (:date-override peeps)  [(t/today)])
         all-users-to-log (mapcat (fn [date] (collect-all-users peeps date)) dates)
         statuses (log-all-time all-users-to-log)
