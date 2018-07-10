@@ -6,9 +6,9 @@
 
 (def db-name (env :couchdburl))
 
-(defn get-creds [name]
-  (or (:up (c/get-document db-name name))
-      (throw (Exception. (str "User: '" name "' not found in couchdb")))))
+(defn get-creds [n]
+  (or (:up (c/get-document db-name (name n)))
+      (throw (Exception. (str "User: '" (name n) "' not found in couchdb")))))
 
 (comment
   (c/bulk-update db-name [
