@@ -4,9 +4,7 @@
             )
   )
 
-;;(def db-name (env :couch_db_url))
-
-(def db-name "jira-creds")
+(def db-name (env :couchdburl))
 
 (defn get-creds [name]
   (or (:up (c/get-document db-name name))
@@ -14,8 +12,9 @@
 
 (comment
   (c/bulk-update db-name [
-                          { :_id "creque" :up "test"}
+                          { :_id "jimham" :up "test"}
                           ]))
+
 
 ;; (c/put-document db-name (assoc (c/get-document db-name "shogren1") :name "horse"))
 
