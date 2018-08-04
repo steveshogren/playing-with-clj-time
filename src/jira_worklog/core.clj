@@ -112,8 +112,11 @@
   (println "missing days incoming!")
   (let [logged (set (p/log-dates))
         weekdays (set (last-two-weeks))
-        missing (set/difference weekdays logged)]
-    (println (map str (reverse (sort missing))))))
+        missing (set/difference weekdays logged) 
+        dates (map (fn [x] (str "\"" x "\"" ))
+                   (reverse (sort missing)))]
+    (println (str "[ " dates " ]"))))
+;; (printhistory)
 
 (defn collect-all-users [peeps date]
   (let [core-holiday-col (collect-single-day (:core-holiday peeps) (:core-holiday-issue peeps) date)
