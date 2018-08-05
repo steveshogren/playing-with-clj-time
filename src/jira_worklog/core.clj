@@ -135,7 +135,7 @@
 
 (defn create-logs [args]
   (let [peeps run-data
-        dates (if (:date-override peeps) (:date-override peeps)  [(t/today)])
+        dates (if (:use-date-override peeps) (:date-override peeps)  [(t/today)])
         all-users-to-log (mapcat (fn [date] (collect-all-users peeps date)) dates)
         statuses (log-all-time all-users-to-log)
         all-good? (reduce (fn [ret [name status]] (and ret (= 201 status))) true statuses)]

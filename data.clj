@@ -1,6 +1,7 @@
 {:web [
        ]
- ;;:date-override  "2016-12-02"
+ :date-override  ["2016-12-02"]
+ :use-date-override true
  ;; :filterStatus #{"Awaiting Acceptance" }
  :core-holiday [
            ;; :moran
