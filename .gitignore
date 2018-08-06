@@ -11,3 +11,4 @@ pom.xml.asc
 .hg/
 /profiles.clj
 /dates.txt
+/data_out.clj
