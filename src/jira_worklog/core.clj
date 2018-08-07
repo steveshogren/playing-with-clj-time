@@ -7,6 +7,7 @@
             [clj-time.local :as l]
             [clj-time.predicates :as pred]
             [jira-worklog.post :as p]
+            [jira-worklog.profiles :as pro]
             [jira-worklog.creds :as creds]
             ))
 
@@ -113,9 +114,11 @@
   (let [logged (set (p/log-dates))
         weekdays (set (last-two-weeks))
         missing (set/difference weekdays logged) 
-        dates (map (fn [x] (str "\"" x "\"" ))
-                   (reverse (sort missing)))]
-    (println (str "[ " dates " ]"))))
+        dates (map str (reverse (sort missing)))
+        _ (pro/overwrite-dates dates)
+        strdates (str "[ " (map (fn [x] (str "\"" x "\"" )) dates) " ]")
+        ]
+    (println strdates)))
 ;; (printhistory)
 
 (defn collect-all-users [peeps date]
