@@ -114,12 +114,18 @@
   (let [logged (set (p/log-dates))
         weekdays (set (last-two-weeks))
         missing (set/difference weekdays logged) 
-        dates (map str (reverse (sort missing)))
-        _ (pro/overwrite-dates dates)
-        strdates (str "[ " (map (fn [x] (str "\"" x "\"" )) dates) " ]")
+        dates (reverse (sort missing))
+        _ (pro/overwrite-dates (vec (map str dates)))
+        strdates (->> dates
+                      (map (fn [x] (str "\"" x "\"" )) )
+                      (clojure.string/join ", " )
+                      (apply str))
         ]
-    (println strdates)))
-;; (printhistory)
+    (println strdates)
+    strdates))
+
+
+(printhistory)
 
 (defn collect-all-users [peeps date]
   (let [core-holiday-col (collect-single-day (:core-holiday peeps) (:core-holiday-issue peeps) date)
