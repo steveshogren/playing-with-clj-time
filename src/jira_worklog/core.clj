@@ -11,7 +11,6 @@
             [jira-worklog.creds :as creds]
             ))
 
-(def run-data (read-string (slurp "data.clj")))
 
 (defn myformat [d]
   (f/unparse (f/formatter-local "YYYY-MM-dd'T'hh:mm:ss.sssZ")
@@ -60,7 +59,6 @@
                                 :id (:id a)})
                              issues)]
     (filter #(not (or (= "new" (:status %))
-                      (contains? (:filterStatus run-data) (:statusName %))
                       (= "done" (:status %)))) all-from-sprint)))
 
 (comment
@@ -119,13 +117,9 @@
         strdates (->> dates
                       (map (fn [x] (str "\"" x "\"" )) )
                       (clojure.string/join ", " )
-                      (apply str))
-        ]
-    (println strdates)
-    strdates))
-
-
-(printhistory)
+                      (apply str))]
+    (println (str "[ " strdates " ]"))))
+;; (printhistory)
 
 (defn collect-all-users [peeps date]
   (let [core-holiday-col (collect-single-day (:core-holiday peeps) (:core-holiday-issue peeps) date)
@@ -143,7 +137,7 @@
     all-users-to-log))
 
 (defn create-logs [args]
-  (let [peeps run-data
+  (let [peeps (read-string (slurp "data_out.clj"))
         dates (if (:use-date-override peeps) (:date-override peeps)  [(t/today)])
         all-users-to-log (mapcat (fn [date] (collect-all-users peeps date)) dates)
         statuses (log-all-time all-users-to-log)
